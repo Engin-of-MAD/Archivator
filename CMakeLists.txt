@@ -3,4 +3,6 @@ project(archivator)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(archivator main.cpp)
+add_executable(archivator main.cpp
+        molules/compressor.cpp
+        molules/args_parser.cpp)
