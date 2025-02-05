@@ -7,7 +7,7 @@
 Settings::Settings()
 : modeXArc(Compress), compressionLevel(6)
 , preservePaths(false), test(true)
-, selfExtracting(false), deleteAfter(false)
+, selfExtracting(false), deleteAfter(false), currMode(0)
 {}
 
 Settings::Settings(int argc, char* argv[]) : Settings()
@@ -18,7 +18,7 @@ Settings::Settings(int argc, char* argv[]) : Settings()
 void Settings::parse(int argc, char* argv[])
 {
     const char* shortOptions = "hi:o:t:l:m:s:p:X:a:u:rdcxST";
-    std::vector<int> args;
+
     const struct option long_options[] = {
         {"help", no_argument, nullptr, 'h'},
         {"input", required_argument, nullptr, 'i'},
@@ -35,12 +35,23 @@ void Settings::parse(int argc, char* argv[])
         {"append", required_argument, nullptr, 'a'},
         {"update", required_argument, nullptr, 'u'},
         {"test-archive", no_argument, nullptr, 'T'},
-        {"compress", no_argument, nullptr, 'c'},
-        {"extract", no_argument, nullptr, 'x'}
+        {"compress", no_argument, &currMode, 'c'},
+        {"extract", no_argument, &currMode, 'x'}
     };
     int currOption = 0, indexOption = 0;
     while ((currOption = getopt_long(argc, argv, shortOptions, long_options, &indexOption)) != -1) {
-       args.push_back(currOption);
+        argsValidator(currOption);
+    }
+}
+
+void Settings::argsValidator(int arg)
+{
+    if (currMode != 0 && currMode == 'c' || currMode == 'x')
+    {
+
+    } else
+    {
+        std::cerr << "Select mode of work for archiver please" << std::endl;
     }
 }
 

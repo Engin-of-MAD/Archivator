@@ -33,9 +33,9 @@ private:
     std::string splitSize;
     bool preservePaths, deleteAfter, test, selfExtracting;
     int compressionLevel;
-
+    int currMode;
     void parse(int argc, char* argv[]);
-    void argsValidator(int argc, char* argv[]);
+    void argsValidator(int arg);
 
     void printHelp();
 
