@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.30)
-project(archivator)
+project(XArc)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(archivator main.cpp
-        molules/compressor.cpp
+add_executable(XArc src/main.cpp
         tests/units/testParserCLI.cpp
-        molules/ParserCLI.cpp
-        molules/inc/ParserCLI.h)
+        src/molules/inc/XArc.h
+        src/molules/Settings.cpp
+)
