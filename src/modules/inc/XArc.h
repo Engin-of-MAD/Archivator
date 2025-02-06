@@ -16,14 +16,13 @@ class Settings
 {
 public:
 
-    enum Mode { Compress = 1, Extractc = 2, CompressWithCrypt = 3, Err = 0} modeXArc;
+    enum Mode {Info = 0, Compress, Extractc, CompressWithCrypt} modeXArc;
 
     Settings();
     Settings(int argc, char *argv[]);
 private:
 
-    std::vector<std::string> files;
-    std::vector<std::string> addToArchive;
+    std::vector<std::wstring> files;
     std::vector<std::string> updateArchive;
     std::vector<std::string> excludePattern;
     std::string arcName;
@@ -37,9 +36,10 @@ private:
     void parse(int argc, char* argv[]);
     void argsValidator(int arg);
 
-    void printHelp();
-
 };
+
+std::wstring convertFromANSI(const char* str);
+void printHelp();
 
 
 #endif //XARC_H

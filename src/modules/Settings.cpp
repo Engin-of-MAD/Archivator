@@ -2,6 +2,9 @@
 // Created by roach on 05.02.2025.
 //
 
+#include <codecvt>
+#include <locale>
+
 #include "./inc/XArc.h"
 
 Settings::Settings()
@@ -10,18 +13,17 @@ Settings::Settings()
 , selfExtracting(false), deleteAfter(false), currMode(0)
 {}
 
-Settings::Settings(int argc, char* argv[]) : Settings()
-{
+Settings::Settings(int argc, char* argv[]) : Settings() {
     parse(argc, argv);
 }
 
 void Settings::parse(int argc, char* argv[])
 {
-    const char* shortOptions = "hi:o:t:l:m:s:p:X:a:u:rdcxST";
+    const char* shortOptions = "hf:o:t:l:m:s:p:X:a:u:rdcxST";
 
     const struct option long_options[] = {
         {"help", no_argument, nullptr, 'h'},
-        {"input", required_argument, nullptr, 'i'},
+        {"files", required_argument, nullptr, 'f'},
         {"output", required_argument, nullptr, 'o'},
         {"type", required_argument, nullptr, 't'},
         {"compression-level", required_argument, nullptr, 'l'},
@@ -44,21 +46,85 @@ void Settings::parse(int argc, char* argv[])
     }
 }
 
+/*
+ * @brief Check arguments in time parsing
+ */
 void Settings::argsValidator(int arg)
 {
-    if (currMode != 0 && currMode == 'c' || currMode == 'x')
+    if (currMode == 'h') modeXArc = Info;
+    else if (currMode == 'c') modeXArc = Compress;
+    else if (currMode == 'x') modeXArc = Extractc;
+    else
     {
-
-    } else
-    {
-        std::cerr << "Select mode of work for archiver please" << std::endl;
+        switch (arg)
+        {
+        case 'h':
+            printHelp();
+            break;
+        case 'f':
+            files.push_back(convertFromANSI(optarg));
+            break;
+        case 'o':
+            arcName = optarg;
+            break;
+        case 't':
+            arcType = optarg;
+            break;
+        case 'l':
+            compressionLevel = atoi(optarg) <= 10 ? atoi(optarg) : -1;
+            break;
+        case 'm':
+            compressionMethod = optarg;
+            break;
+        case 's':
+            splitSize = optarg;
+            break;
+        case 'X':
+            excludePattern.push_back(optarg);
+            break;
+        case 'r':
+            preservePaths = true;
+            break;
+        case 'd':
+            deleteAfter = true;
+            break;
+        case 'S':
+            selfExtracting = true;
+            break;
+        case 'a':
+            files.push_back(convertFromANSI(optarg));
+        break;
+        case 'u':
+            files.push_back(convertFromANSI(optarg));
+        break;
+        default:
+            std::cerr << "Select correct mode please" << std::endl;
+        break;
+        }
     }
 }
 
-void Settings::printHelp() {
+/*
+ * @brief Convert string c-style to wstring (Wide String)
+ * @param str path from optarg
+ * @return return correct path
+ */
+std::wstring convertFromANSI(const char* str)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+    return converter.from_bytes(str);
+}
+
+
+/*
+ * @brief Print Info
+ */
+void printHelp() {
     std::cout << "Usage: ./archiver [options]\n"
                           << "Options:\n"
                           << "  -h              Show help\n"
+                          << "  -c              Compress to archive\n"
+                          << "  -x              Extract from archive\n"
                           << "  -i <input>      Input file/directory\n"
                           << "  -o <output>     Output archive\n"
                           << "  -t <type>       Archive type (tar, zip, 7z)\n"
