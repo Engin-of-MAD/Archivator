@@ -7,12 +7,10 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
 #include <regex>
-#include <getopt.h>
-/**@brief
- *
- */
+
+///@brief All params after parsings for all program
+
 class Settings
 {
 public:
