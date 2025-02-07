@@ -17,7 +17,7 @@ class Settings
 {
 public:
 
-    enum Mode {Compress = 0, Extractc, Append, Update, Test, Info, Err} modeXArc;
+    enum Mode {Compress = 0, Extractc, Append, Update, Test, Info, Err};
     Settings();
     Settings(int argc, char *argv[]);
 private:
@@ -33,6 +33,7 @@ private:
     bool preservePaths, deleteAfter, test, selfExtracting;
     int compressionLevel;
     int currMode;
+    Mode modeXArc;
     void parse(int argc, char* argv[]);
     void parseHelp();
     void notSelectedMode();
