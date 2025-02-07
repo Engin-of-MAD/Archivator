@@ -18,9 +18,6 @@ class Settings
 public:
 
     enum Mode {Compress = 0, Extractc, Append, Update, Test, Info, Err} modeXArc;
-    enum ErrorsTypes{AbsenceInputsFiles = 0, ConflictsModesCXAUT,
-        SpecificMode, IncorrectCompressionLevel, AbsenceMods,
-        ErrCombinateMods, UnsupportedType, InvalidFormat,UnsupportedMethod, Ok};
     Settings();
     Settings(int argc, char *argv[]);
 private:
@@ -37,17 +34,17 @@ private:
     int compressionLevel;
     int currMode;
     void parse(int argc, char* argv[]);
-    ErrorsTypes parseHelp();
-    ErrorsTypes notSelectedMode();
-    ErrorsTypes selectMainMode();
-    ErrorsTypes conflictModes(char arg);
-
-    ErrorsTypes validatorOfModes(char arg);
-    ErrorsTypes validateArchiveType(const std::string& type);
-    ErrorsTypes validateLevelCompress(const std::string& level);
-    ErrorsTypes validateCompressionMethod(const std::string& method);
-    ErrorsTypes validateSplitSize(const std::string& size);
-    ErrorsTypes argsValidator(char arg);
+    void parseHelp();
+    void notSelectedMode();
+    void selectMainMode();
+    void conflictModes(char arg);
+    void unknownOption(char arg);
+    void validatorOfModes(char arg);
+    void validateArchiveType(const std::string& type);
+    int validateLevelCompress(const std::string& level);
+    std::string validateCompressionMethod(const std::string& method);
+    std::string validateSplitSize(const std::string& size);
+    void argsValidator(char arg);
 };
 
 std::wstring convertFromANSI(const char* str);

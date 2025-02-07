@@ -43,90 +43,65 @@ void Settings::parse(int argc, char* argv[])
     };
     char currOption = 0;
     int indexOption = 0;
-    while ((currOption = getopt_long(argc, argv, shortOptions, long_options, &indexOption)) != -1) {
-        ErrorsTypes err_code = argsValidator(currOption);
-        if (err_code != Ok) break;
-    }
+    while ((currOption = getopt_long(argc, argv, shortOptions, long_options, &indexOption)) != -1)
+        argsValidator(currOption);
+
     if (argc == 1 )
         notSelectedMode();
 }
 
-Settings::ErrorsTypes Settings::parseHelp() {
-    ErrorsTypes err_code = Ok;
+void Settings::parseHelp() {
     if (currMode != 0 && currMode != 'h')
-    {
-        std::cerr << "--help cannot be combined with other modes" << std::endl;
-        err_code = ErrCombinateMods;
-    } else
-    {
-        currMode = 'h';
-    }
-    return err_code;
+        throw std::invalid_argument("--help cannot be combined with other modes");
+    modeXArc = Info;
+    currMode = 'h';
 }
 
-Settings::ErrorsTypes Settings::validateSplitSize(const std::string& size) {
+std::string Settings::validateSplitSize(const std::string& size) {
     std::regex size_regex(R"(^\d+(\.\d+)?[KMGT]?B?$)", std::regex::icase);
-    ErrorsTypes err_code = Ok;
-    if (!std::regex_match(size, size_regex)) {
-        std::cerr << "Invalid split size format. Example: 100MB, 10.5GB" << std::endl;
-        err_code = InvalidFormat;
-    } else
-    {
-        splitSize = size;
-    }
-    return err_code;
+    if (!std::regex_match(size, size_regex))
+        throw std::invalid_argument("Invalid split size format. Example: 100MB, 10.5GB");
+    return size;
 }
 
-Settings::ErrorsTypes Settings::validateLevelCompress(const std::string& level) {
-    ErrorsTypes err_code = Ok;
-
-    std::regex level_regex(R"(^/d$)");
+int Settings::validateLevelCompress(const std::string& level) {
+    std::regex level_regex(R"(^\\d+$)");
+    int val = 0;
     if (!std::regex_match(level, level_regex))
     {
-        std::cerr << "Compression level must be an integer" << std::endl;
-        err_code = InvalidFormat;
+        throw std::invalid_argument("Compression level must be an integer");
     }
     try
     {
-        int val = std::stoi(level);
-        if ( val < 0 || val > 9)
-        {
-            std::cerr << "Error level: Argument must be between 0-9!" << std::endl;
-            err_code = IncorrectCompressionLevel;
+        val = std::stoi(level);
+        if ( val < 0 || val > 9) {
+            throw std::invalid_argument("Error level: Argument must be between 0-9!");
         }
     } catch (std::exception&)
     {
-        std::cerr << "Error level: Invalid compression level format." << std::endl;
-        err_code = InvalidFormat;
+        throw std::invalid_argument("Error level: Invalid compression level format.");
     }
 
-    return err_code;
+    return val;
 }
 
-Settings::ErrorsTypes Settings::validateCompressionMethod(const std::string& method)
+std::string Settings::validateCompressionMethod(const std::string& method)
 {
-    ErrorsTypes err_code = Ok;
     const std::set<std::string> allowedMethods = {"store", "deflate", "bzip2", "lzma"};
-    if (!allowedMethods.count(method))
-    {
-        std::cerr << "Unsupported compression method: " + method << std::endl;
-        err_code = UnsupportedMethod;
+    if (!allowedMethods.count(method)) {
+        throw std::invalid_argument("Unsupported compression method: " + method);
     }
-    return err_code;
+    return method;
 }
 
-Settings::ErrorsTypes Settings::notSelectedMode() {
-    ErrorsTypes err_code = Ok;
-    if (currMode != 'h')
-    {
-        std::cerr << "You must specify one mod of the \'-cxauT\'.\nTry 'xArch --help' for more information.\n";
-        err_code = AbsenceMods;
+void Settings::notSelectedMode() {
+    if (currMode != 'h') {
+        throw std::invalid_argument("You must specify one mod of the \'-cxauT\'.\nTry 'xArch --help' for more information.\n");
     }
-    return err_code;
 }
 
-Settings::ErrorsTypes Settings::selectMainMode() {
-    ErrorsTypes err_code = Ok;
+void Settings::selectMainMode() {
+
     // Установка основного режима работы
     switch (currMode) {
     case 'c': modeXArc = Compress; break;
@@ -134,72 +109,63 @@ Settings::ErrorsTypes Settings::selectMainMode() {
     case 'a': modeXArc = Append; break;
     case 'u': modeXArc = Update; break;
     case 'T': modeXArc = Test; break;
-    case 0:   // Режим не выбран
-        err_code = notSelectedMode();
+    case 0: notSelectedMode(); // Режим не выбран
         break;
     default:
         break;
     }
-    return err_code;
+
 }
 
-Settings::ErrorsTypes Settings::conflictModes(char arg)
+void Settings::conflictModes(char arg)
 {
-    ErrorsTypes err_code = Ok;
-    if (currMode != '0' && currMode != arg)
-    {
-        std::cerr << "Conflicting modes: can't combine -c, extract -x,"
-                     " -append -a, update -u, test -T ." << std::endl;
-        err_code = ConflictsModesCXAUT;
-    } else
-    {
-        modeXArc = Test;
-        currMode = arg;
+    if (currMode != '0' && currMode != arg) {
+        throw std::invalid_argument("Conflicting modes: can't combine -c, extract -x,"
+                     " -append -a, update -u, test -T .");
     }
-
-    return err_code;
+    currMode = arg;
 }
 
-Settings::ErrorsTypes Settings::validatorOfModes(char arg) {
-    ErrorsTypes err_code = Ok;
+void Settings::unknownOption(char arg) {
+    if (arg != 'h')
+        throw std::invalid_argument("Unknown option: -" + arg);
+}
+
+void Settings::validatorOfModes(char arg) {
+
     switch (arg) {
     case 'h': // Помощь - высший приоритет
-        return parseHelp(); // Нет необходимости обрабатывать другие флаги
+        parseHelp(); // Нет необходимости обрабатывать другие флаги
+        return;
         break;
     case 'c': // Режим сжатия
     case 'x': // Режим распаковки
     case 'a': // Добавление в архив
     case 'u': // Обновление архива
     case 'T': // Тестирование архива
-        // Проверка конфликта режимов
-       return conflictModes(arg);
+        conflictModes(arg); // Проверка конфликта режимов
+
         break;
     default:
         break;
     }
-    return err_code;
+
 }
 
-Settings::ErrorsTypes Settings::validateArchiveType(const std::string& type)
+void Settings::validateArchiveType(const std::string& type)
 {
     const std::set<std::string> allowed = {"zip", "tar", "7z", "rar"};
     if (!allowed.count(type))
-        std::cerr << "Unsupported archive type: " + type << std::endl;
-        return UnsupportedType;
+        throw std::invalid_argument("Unsupported archive type: " + type);
 }
 
 /*
  * @brief Check arguments in time parsing
  */
-Settings::ErrorsTypes Settings::argsValidator(char arg)
+void Settings::argsValidator(char arg)
 {
-    ErrorsTypes err_code = validatorOfModes(arg);
-    if (err_code != Ok)
-        return err_code;
-    err_code = selectMainMode();
-    if (err_code != Ok)
-        return err_code;
-
+    validatorOfModes(arg);
+    selectMainMode();
     switch (arg)
     {
         case 'f':
@@ -212,19 +178,19 @@ Settings::ErrorsTypes Settings::argsValidator(char arg)
             arcName = optarg;
             break;
         case 't':
-            err_code = validateArchiveType(optarg);
+            validateArchiveType(optarg);
             arcName = optarg;
             break;
         case 'l':
-            err_code = validateLevelCompress(optarg);
+             validateLevelCompress(optarg);
             compressionLevel = std::stoi(optarg);
             break;
         case 'm':
-            err_code = validateCompressionMethod(optarg);
+            validateCompressionMethod(optarg);
             compressionMethod = optarg;
             break;
         case 's':
-            err_code = validateSplitSize(optarg);
+            validateSplitSize(optarg);
             break;
         case 'x':
             excludePattern.push_back(optarg);
@@ -233,15 +199,13 @@ Settings::ErrorsTypes Settings::argsValidator(char arg)
             preservePaths = true;
             break;
         case 'd':
-            //Написать валидацию
+            if (modeXArc != Compress && modeXArc != Append && modeXArc != Update)
+                throw std::invalid_argument("--delete-after requires compress/append/update mode");
             deleteAfter = true;
             break;
         case 'S':
             if (modeXArc != Compress)
-            {
-                std::cerr << "--self-extracting requires compress mode" << std::endl;
-                err_code = UnsupportedType;
-            }
+                throw std::invalid_argument("--self-extracting requires compress mode");
             selfExtracting = true;
             break;
         case 'a':
@@ -252,14 +216,12 @@ Settings::ErrorsTypes Settings::argsValidator(char arg)
             test = true;
             break;
         default:
-            if (arg != 'h') {
-                throw std::invalid_argument(std::string("Unknown option: -") +
-                    static_cast<char>(arg));
-            }
+            if (arg != 'h')
+                throw std::invalid_argument("Unknown option: -" + arg);
             break;
     }
 
-    return err_code;
+
 }
 
 /*
