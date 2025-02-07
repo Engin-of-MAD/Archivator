@@ -15,7 +15,11 @@ Settings::Settings()
 {}
 
 Settings::Settings(int argc, char* argv[]) : Settings() {
-    parse(argc, argv);
+    try{
+        parse(argc, argv);
+    } catch (const std::exception& e) {
+        std::cerr << "Error level parser: "<< e.what() << std::endl;
+    }
 }
 
 void Settings::parse(int argc, char* argv[])
