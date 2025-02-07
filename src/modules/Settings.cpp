@@ -2,12 +2,13 @@
 // Created by roach on 05.02.2025.
 //
 
+
 #include <codecvt>
-#include <locale>
-#include <set>
 
 #include "./inc/XArc.h"
-
+#include <getopt.h>
+#include <iostream>
+#include <set>
 Settings::Settings()
 : modeXArc(Err), compressionLevel(6)
 , preservePaths(false), test(true)
@@ -20,6 +21,50 @@ Settings::Settings(int argc, char* argv[]) : Settings() {
     } catch (const std::exception& e) {
         std::cerr << "Error level parser: "<< e.what() << std::endl;
     }
+}
+
+std::string Settings::getArcName() const
+{
+}
+
+std::string Settings::getArcType() const
+{
+}
+
+std::string Settings::getFiles() const
+{
+}
+
+std::string Settings::getPassword() const
+{
+}
+
+std::string Settings::getCompressionMethod() const
+{
+}
+
+std::string Settings::getSplitSize() const
+{
+}
+
+bool Settings::getPreservePaths() const
+{
+}
+
+bool Settings::getDeleteAfter() const
+{
+}
+
+bool Settings::getTets() const
+{
+}
+
+bool Settings::getSelfExtraction() const
+{
+}
+
+int Settings::getCompressionLevel() const
+{
 }
 
 void Settings::parse(int argc, char* argv[])

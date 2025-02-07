@@ -9,6 +9,7 @@
 #include <string>
 #include <regex>
 
+
 ///@brief All params after parsings for all program
 
 class Settings
@@ -18,6 +19,19 @@ public:
     enum Mode {Compress = 0, Extractc, Append, Update, Test, Info, Err};
     Settings();
     Settings(int argc, char *argv[]);
+    ~Settings() = default;
+    std::string getArcName() const;
+    std::string getArcType() const;
+    std::string getFiles() const;
+    std::string getPassword() const;
+    std::string getCompressionMethod() const;
+    std::string getSplitSize() const;
+    bool getPreservePaths() const;
+    bool getDeleteAfter() const;
+    bool getTets() const;
+    bool getSelfExtraction() const;
+    int getCompressionLevel() const;
+
 private:
 
     std::vector<std::wstring> files;
