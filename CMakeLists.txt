@@ -16,6 +16,7 @@ add_compile_options(-Wall -Wextra -Wpedantic -fsanitize=address)
 set(sources
         src/modules/inc/XArc.h
         src/modules/Settings.cpp
+        src/modules/inc/Interfaces.h
 )
 set(test_libs GTest::GTest GTest::Main)
 set(entry_point src/main.cpp)
