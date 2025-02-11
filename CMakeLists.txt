@@ -14,8 +14,8 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${SANITIZER_FLAGS}")
 
 add_compile_options(-Wall -Wextra -Wpedantic -fsanitize=address)
 set(sources
-        src/modules/inc/XArc.h
-        src/modules/Settings.cpp
+        src/modules/inc/ParserCLI.h
+        src/modules/ParserCLI.cpp
         src/modules/inc/Interfaces.h
 )
 set(test_libs GTest::GTest GTest::Main)
