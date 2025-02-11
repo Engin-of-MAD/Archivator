@@ -1,7 +1,7 @@
 
 #include <locale>
-#include "./modules/inc/XArc.h"
+#include "./modules/inc/ParserCLI.h"
 
 int main(int argc, char* argv[]) {
-    Settings conf(argc, argv);
+    Parser parser(argc, argv);
 }
