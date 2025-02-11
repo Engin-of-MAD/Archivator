@@ -22,7 +22,7 @@ const Settings& Parser::getConf() const
 void Parser::parseArgs(int argc, char** argv)
 {
     std::string shortOptions = "hf:o:t:l:m:s:p:X:a:u:rdcxST";
-    char currOption = 0;
+    char currOption = 0, prevOption = 0;
     int indexOption = 0;
     const option long_options[] = {
         {"help", no_argument, nullptr, 'h'},
@@ -62,6 +62,7 @@ void Parser::parseArgs(int argc, char** argv)
                 if (currOption != 0 && currOption != 'h')
                     throw std::invalid_argument("--help cannot be combined with other modes");
                 conf.modeXArc = Settings::Info;
+                prevOption = 'h';
                 exit(0);
             case 'c':
                 conf.modeXArc = Settings::Compress;
