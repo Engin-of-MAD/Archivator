@@ -21,10 +21,10 @@
 
 struct Settings
 {
-    enum ModeXArc {Compress = 0, Extractc, Append, Update, Test, Info, Err};
+    enum ModeXArc {Compress = 0, Extract, Append, Update, Test, Info, Err};
     enum TypeSize{KiB, Mib, Gib};
     std::vector<std::wstring> files;
-    std::vector<std::string> updateArchive;
+    std::vector<std::wstring> updateArchive;
     std::vector<std::string> excludePattern;
     std::pair<size_t, TypeSize> sizeSplit;
     std::string arcName;
@@ -49,12 +49,23 @@ public:
     const Settings& getConf() const;
 private:
     void parseArgs(int argc, char **argv);
-    void parseSizeSplit(const std::string& sizeSplite);
+    std::pair<size_t, Settings::TypeSize> parseSizeSplit(const std::string& sizeSplite);
+    void validateSettings();
     void validateSplitSize(const std::string& size);
     void validateArchiveType(const std::string& type);
     void validateLevelCompress(const std::string& level);
     void validateCompressionMethod(const std::string& method);
+
+
+    void argsValidator(char arg);
+    void notSelectedMode();
+    void parseHelp();
+    void validatorOfModes(char arg);
+    void conflictModes(char arg);
+    void unknownOption(char arg);
+    void selectMainMode();
     Settings conf;
+    int currMode;
 };
 
 #endif //XARC_H
