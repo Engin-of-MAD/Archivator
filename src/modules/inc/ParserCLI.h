@@ -21,7 +21,7 @@
 
 struct Settings
 {
-    enum ModeXArc {Compress = 0, Extract, Append, Update, Test, Info, Err};
+    enum ModeXArc {Compress = 0, Extract, Append, Update, Test, Info, Err, NotSelected};
     enum TypeSize{KiB, Mib, Gib};
     std::vector<std::wstring> files;
     std::vector<std::wstring> updateArchive;
@@ -33,7 +33,7 @@ struct Settings
     std::string password;
     bool preservePaths, deleteAfter, test, selfExtracting;
     int compressionLevel;
-    ModeXArc modeXArc;
+    ModeXArc mode = NotSelected;
 };
 
 std::wstring convertFromANSI(const char* str);
@@ -50,22 +50,17 @@ public:
 private:
     void parseArgs(int argc, char **argv);
     std::pair<size_t, Settings::TypeSize> parseSizeSplit(const std::string& sizeSplite);
-    void validateSettings();
+    void validate();
     void validateSplitSize(const std::string& size);
     void validateArchiveType(const std::string& type);
     void validateLevelCompress(const std::string& level);
     void validateCompressionMethod(const std::string& method);
 
+    void conflictMode(Settings::ModeXArc flag);
+    void registerHandlers();
 
-    void argsValidator(char arg);
-    void notSelectedMode();
-    void parseHelp();
-    void validatorOfModes(char arg);
-    void conflictModes(char arg);
-    void unknownOption(char arg);
-    void selectMainMode();
+    std::unordered_map<char, std::function<void(const char*)>> handlers;
     Settings conf;
-    int currMode;
 };
 
 #endif //XARC_H

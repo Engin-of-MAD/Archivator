@@ -6,8 +6,10 @@
 
 Parser::Parser(int argc, char** argv)
 {
+    registerHandlers();
     try{
         parseArgs(argc, argv);
+        validate();
     } catch (const std::exception& e) {
         std::cerr << "Error level parser:\n"<< e.what() << std::endl;
     }
@@ -22,7 +24,7 @@ const Settings& Parser::getConf() const
 void Parser::parseArgs(int argc, char** argv)
 {
     std::string shortOptions = "hf:o:t:l:m:s:p:X:a:u:rdcxST";
-    char currOption = 0, prevOption = 0;
+    char currOption = 0;
     int indexOption = 0;
     const option long_options[] = {
         {"help", no_argument, nullptr, 'h'},
@@ -50,18 +52,21 @@ void Parser::parseArgs(int argc, char** argv)
 
     while ((currOption = getopt_long(argc, argv, shortOptions.data(),
                                      long_options, &indexOption)) != -1) {
-        argsValidator(currOption);
+//        argsValidator(currOption);
+        handlers[currOption](optarg);
     }
 }
 
 std::pair<size_t, Settings::TypeSize> Parser::parseSizeSplit(const std::string& sizeSplite) {
-//    float sizeMultiplier = std::stof(sizeSplite);
+    int sizeMultiplier = std::stof(sizeSplite);
     std::pair<size_t, Settings::TypeSize> sizeSector;
     std::string qualificator = "10MB";
     for (auto iter: qualificator) {
         if (isdigit(iter))
             std::cout << "Digit is a found"<< std::endl;
     }
+
+    sizeSector.first = sizeMultiplier;
     return sizeSector;
 }
 
@@ -105,127 +110,82 @@ void Parser::validateSplitSize(const std::string& size) {
         throw std::invalid_argument("Invalid split size format. Example: 100MB, 10.5GB");
 }
 
-void Parser::parseHelp() {
-    if (currMode != 0 && currMode != 'h')
-        throw std::invalid_argument("--help cannot be combined with other modes");
-    conf.modeXArc = Settings::Info;
-    currMode = 'h';
+
+
+void Parser::registerHandlers() {
+    handlers = {
+            {'h', [&](const char*) { // --help
+                conflictMode(Settings::Info);
+                conf.mode = Settings::Info;
+                printHelp();
+            }},
+             {'c', [&](const char*) { // --compress
+                 conflictMode(Settings::Compress);
+                 conf.mode = Settings::Compress;
+             }},
+             {'x', [&](const char*) { // --extract
+                 conflictMode(Settings::Extract);
+                 conf.mode = Settings::Extract;
+             }},
+            {'u', [&](const char*) {
+                conflictMode(Settings::Update);
+                conf.mode = Settings::Update;
+            }},
+            {'T', [&](const char*) {
+                conflictMode(Settings::Test);
+                conf.mode = Settings::Test;
+            }},
+            {'f', [&](const char* val) {
+                conf.files.push_back(convertFromANSI(val));
+            }},
+            {'o', [&](const char* val){
+                conf.arcName = val;
+            }},
+            {'t', [&](const char* type) {
+                validateArchiveType(type);
+                conf.compressionMethod = type;
+            }},
+            {'l', [&](const char* level){
+                validateLevelCompress(level);
+                conf.compressionLevel = std::stoi(level);
+            }},
+            {'s', [&](const char* splitSize){
+                validateSplitSize(splitSize);
+                conf.sizeSplit = parseSizeSplit(splitSize);
+            }},
+            {'m', [&](const char* method){
+                validateCompressionMethod(method);
+                conf.compressionMethod= method;
+            }},
+            {'X', [&](const char* pattern) {
+                conf.excludePattern.push_back(pattern);
+            }}
+    };
+
 }
 
-void Parser::notSelectedMode() {
-    if (currMode != 'h') {
-        throw std::invalid_argument("You must specify one mod of the \'-cxauT\'.\nTry 'xArch --help' for more information.\n");
-    }
+void Parser::validate() {
+    if (conf.mode == Settings::Err)
+        throw std::invalid_argument("No mode specified");
+    if (conf.mode == Settings::Compress && conf.files.empty())
+        throw std::invalid_argument("Input files not required");
+    if (conf.mode == Settings::Compress && conf.arcName.empty())
+        throw std::invalid_argument("Not defined name archive");
+    if (conf.mode == Settings::Update)
+        throw std::exception
 }
-void Parser::selectMainMode() {
-    // Установка основного режима работы
-    switch (currMode) {
-        case 'c': conf.modeXArc = Settings::Compress; break;
-        case 'x': conf.modeXArc = Settings::Extract; break;
-        case 'a': conf.modeXArc = Settings::Append; break;
-        case 'u': conf.modeXArc = Settings::Update; break;
-        case 'T': conf.modeXArc = Settings::Test; break;
-        case 0: notSelectedMode(); // Режим не выбран
-            break;
-        default:
-            break;
-    }
-}
-void Parser::conflictModes(char arg)
-{
-    if (currMode != '0' && currMode != arg) {
-        throw std::invalid_argument("Conflicting modes: can't combine -c, extract -x,"
-                                    " -append -a, update -u, test -T .");
-    }
-    currMode = arg;
-}
-void Parser::unknownOption(char arg) {
-    if (arg != 'h')
-        throw std::invalid_argument("Unknown option: -" + arg);
-}
-void Parser::validatorOfModes(char arg) {
-    switch (arg) {
-        case 'h': // Помощь - высший приоритет
-            parseHelp(); // Нет необходимости обрабатывать другие флаги
-            return;
-            break;
-        case 'c': // Режим сжатия
-        case 'x': // Режим распаковки
-        case 'a': // Добавление в архив
-        case 'u': // Обновление архива
-        case 'T': // Тестирование архива
-            conflictModes(arg); // Проверка конфликта режимов
-            break;
-        default:
-            break;
+
+void Parser::conflictMode(Settings::ModeXArc flag) {
+    if (conf.mode != Settings::NotSelected && conf.mode != Settings::Err && conf.mode != flag) {
+        conf.mode = Settings::Err;
+        throw std::invalid_argument("Mode conflict. Please choose only one main mode -cxuaT.");
     }
 }
 
-/*
- * @brief Check arguments in time parsing
- */
-void Parser::argsValidator(char arg) {
-    validatorOfModes(arg);
-    selectMainMode();
-    switch (arg) {
-        case 'f':
-            conf.files.push_back(convertFromANSI(optarg));
-            break;
-#ifdef DEBUG_SETTINGS
-            std::cout << "Added file: " << optarg << std::endl;
-#endif
-        case 'o':
-            conf.arcName = optarg;
-            break;
-        case 't':
-            validateArchiveType(optarg);
-            conf.arcName = optarg;
-            break;
-        case 'l':
-            validateLevelCompress(optarg);
-            conf.compressionLevel = std::stoi(optarg);
-            break;
-        case 'm':
-            validateCompressionMethod(optarg);
-            conf.compressionMethod = optarg;
-            break;
-        case 's':
-            validateSplitSize(optarg);
-            break;
-        case 'x':
-            conf.excludePattern.push_back(optarg);
-            break;
-        case 'r':
-            conf.preservePaths = true;
-            break;
-        case 'd':
-            if (conf.modeXArc != Settings::Compress && conf.modeXArc != Settings::Append &&
-                conf.modeXArc != Settings::Update)
-                throw std::invalid_argument("--delete-after requires compress/append/update mode");
-            conf.deleteAfter = true;
-            break;
-        case 'S':
-            if (conf.modeXArc != Settings::Compress)
-                throw std::invalid_argument("--self-extracting requires compress mode");
-            conf.selfExtracting = true;
-            break;
-        case 'a':
-        case 'u':
-            conf.files.push_back(convertFromANSI(optarg));
-            break;
-        case 'T':
-            conf.test = true;
-            break;
-        default:
-            if (arg != 'h')
-                throw std::invalid_argument("Unknown option: -" + arg);
-            break;
-    }
-}
 /*
  * @brief Convert string c-style to wstring (Wide String)
  * @param str path from optarg
- * @return return correct path
+ * @return return correct string
  */
 std::wstring convertFromANSI(const char* str)
 {
