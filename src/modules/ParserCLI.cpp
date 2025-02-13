@@ -173,6 +173,12 @@ void Parser::validate() {
 
     if (conf.mode == Settings::Extract && conf.output.empty())
         throw std::invalid_argument("Not required archive for extracting");
+    if (conf.mode == Settings::Extract && !conf.input.empty())
+        throw std::invalid_argument("Not supported operation");
+    if (conf.mode == Settings::Extract && (conf.sizeSplit > 0 || conf.compressionLevel > 0
+    || conf.deleteAfter || conf.selfExtracting
+    || !conf.arcType.empty() || !conf.compressionMethod.empty()))
+        throw std::invalid_argument("Not supported operation");
 
     if (conf.mode == Settings::Append && conf.input.empty())
         throw std::invalid_argument("Not founded added files to archive");
@@ -180,15 +186,23 @@ void Parser::validate() {
         throw std::invalid_argument("Not founded archive for added files");
     if (conf.mode == Settings::Append && (conf.sizeSplit > 0 || conf.selfExtracting))
         throw std::invalid_argument("Сan't change the data");
+    if (conf.mode == Settings::Append && conf.deleteAfter)
+        throw std::invalid_argument("Those operation can use only creating archive");
+    if (conf.mode == Settings::Append && (!conf.arcType.empty() || !conf.excludePattern.empty() || conf.preservePaths))
+        throw std::invalid_argument("Those is operation for creating new archive");
 
+    if (conf.mode == Settings::Update && conf.input.empty())
+        throw std::invalid_argument("Not found files for update");
     if (conf.mode == Settings::Update && conf.output.empty())
         throw std::invalid_argument("Not required archive to update");
+    if (conf.mode == Settings::Update && (conf.sizeSplit > 0 || !conf.arcType.empty()
+    || conf.selfExtracting || conf.preservePaths || !conf.excludePattern.empty()))
+        throw std::invalid_argument("This is option working for new archive");
+
     if (conf.mode == Settings::Test && conf.output.empty())
         throw std::invalid_argument("Not founded archive for testing");
     if (conf.mode == Settings::Test && conf.compressionLevel > 0)
         throw std::invalid_argument("Useless operation for mode test");
-//    if (conf.mode == Settings::Extract && conf.preservePaths)
-
 }
 
 void Parser::conflictMode(Settings::ModeXArc flag) {
