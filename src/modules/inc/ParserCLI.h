@@ -23,15 +23,16 @@ struct Settings
 {
     enum ModeXArc {Compress = 0, Extract, Append, Update, Test, Info, Err, NotSelected};
     enum TypeSize{KiB, Mib, Gib};
-    std::vector<std::wstring> files;
+    std::vector<std::wstring> input;
     std::vector<std::wstring> updateArchive;
+
     std::vector<std::string> excludePattern;
     std::pair<size_t, TypeSize> sizeSplit;
-    std::string arcName;
+    std::string output;
     std::string arcType;
     std::string compressionMethod;
     std::string password;
-    bool preservePaths, deleteAfter, test, selfExtracting;
+    bool preservePaths, deleteAfter, selfExtracting;
     int compressionLevel;
     ModeXArc mode = NotSelected;
 };

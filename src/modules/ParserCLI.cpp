@@ -28,7 +28,7 @@ void Parser::parseArgs(int argc, char** argv)
     int indexOption = 0;
     const option long_options[] = {
         {"help", no_argument, nullptr, 'h'},
-        {"files", required_argument, nullptr, 'f'},
+        {"input", required_argument, nullptr, 'f'},
         {"output", required_argument, nullptr, 'o'},
         {"type", required_argument, nullptr, 't'},
         {"compression-level", required_argument, nullptr, 'l'},
@@ -136,10 +136,10 @@ void Parser::registerHandlers() {
                 conf.mode = Settings::Test;
             }},
             {'f', [&](const char* val) {
-                conf.files.push_back(convertFromANSI(val));
+                conf.input.push_back(convertFromANSI(val));
             }},
             {'o', [&](const char* val){
-                conf.arcName = val;
+                conf.output = val;
             }},
             {'t', [&](const char* type) {
                 validateArchiveType(type);
@@ -167,12 +167,20 @@ void Parser::registerHandlers() {
 void Parser::validate() {
     if (conf.mode == Settings::Err)
         throw std::invalid_argument("No mode specified");
-    if (conf.mode == Settings::Compress && conf.files.empty())
-        throw std::invalid_argument("Input files not required");
-    if (conf.mode == Settings::Compress && conf.arcName.empty())
+    if (conf.mode == Settings::Compress && conf.input.empty())
+        throw std::invalid_argument("Input input not required");
+    if (conf.mode == Settings::Compress && conf.output.empty())
         throw std::invalid_argument("Not defined name archive");
-    if (conf.mode == Settings::Update)
-        throw std::exception
+    if (conf.mode == Settings::Extract && conf.output.empty())
+        throw std::invalid_argument("Not required archive for extracting");
+    if (conf.mode == Settings::Append && conf.input.empty())
+        throw std::invalid_argument("Not founded added files to archive");
+    if (conf.mode == Settings::Append && conf.output.empty())
+        throw std::invalid_argument("Not founded archive for added files");
+    if (conf.mode == Settings::Update && conf.output.empty())
+        throw std::invalid_argument("Not required archive to update");
+    if (conf.mode == Settings::Test && conf.output.empty())
+        throw std::invalid_argument("Not founded archive for testing");
 }
 
 void Parser::conflictMode(Settings::ModeXArc flag) {
@@ -218,11 +226,11 @@ void printHelp() {
                           << "  -m <method>     Compression method (gzip, bzip2, xz)\n"
                           << "  -p <password>   Password for encryption\n"
                           << "  -s <size>       Split archive into parts (e.g., 100M)\n"
-                          << "  -X <pattern>    Exclude files matching pattern\n"
+                          << "  -X <pattern>    Exclude input matching pattern\n"
                           << "  -r              Preserve directory structure\n"
-                          << "  -d              Delete files after archiving\n"
+                          << "  -d              Delete input after archiving\n"
                           << "  -S              Create self-extracting archive\n"
-                          << "  -a <archive>    Append files to existing archive\n"
+                          << "  -a <archive>    Append input to existing archive\n"
                           << "  -u <archive>    Update existing archive\n"
                           << "  -T              Test archive integrity\n";
 }
