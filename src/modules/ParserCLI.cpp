@@ -52,21 +52,20 @@ void Parser::parseArgs(int argc, char** argv)
 
     while ((currOption = getopt_long(argc, argv, shortOptions.data(),
                                      long_options, &indexOption)) != -1) {
-//        argsValidator(currOption);
         handlers[currOption](optarg);
     }
 }
 
-std::pair<size_t, Settings::TypeSize> Parser::parseSizeSplit(const std::string& sizeSplite) {
+size_t Parser::parseSizeSplit(const std::string& sizeSplite) {
     int sizeMultiplier = std::stof(sizeSplite);
-    std::pair<size_t, Settings::TypeSize> sizeSector;
+    size_t sizeSector;
     std::string qualificator = "10MB";
     for (auto iter: qualificator) {
         if (isdigit(iter))
             std::cout << "Digit is a found"<< std::endl;
     }
 
-    sizeSector.first = sizeMultiplier;
+    sizeSector = sizeMultiplier;
     return sizeSector;
 }
 
@@ -171,16 +170,25 @@ void Parser::validate() {
         throw std::invalid_argument("Input input not required");
     if (conf.mode == Settings::Compress && conf.output.empty())
         throw std::invalid_argument("Not defined name archive");
+
     if (conf.mode == Settings::Extract && conf.output.empty())
         throw std::invalid_argument("Not required archive for extracting");
+
     if (conf.mode == Settings::Append && conf.input.empty())
         throw std::invalid_argument("Not founded added files to archive");
     if (conf.mode == Settings::Append && conf.output.empty())
         throw std::invalid_argument("Not founded archive for added files");
+    if (conf.mode == Settings::Append && (conf.sizeSplit > 0 || conf.selfExtracting))
+        throw std::invalid_argument("Сan't change the data");
+
     if (conf.mode == Settings::Update && conf.output.empty())
         throw std::invalid_argument("Not required archive to update");
     if (conf.mode == Settings::Test && conf.output.empty())
         throw std::invalid_argument("Not founded archive for testing");
+    if (conf.mode == Settings::Test && conf.compressionLevel > 0)
+        throw std::invalid_argument("Useless operation for mode test");
+//    if (conf.mode == Settings::Extract && conf.preservePaths)
+
 }
 
 void Parser::conflictMode(Settings::ModeXArc flag) {

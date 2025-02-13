@@ -27,7 +27,7 @@ struct Settings
     std::vector<std::wstring> updateArchive;
 
     std::vector<std::string> excludePattern;
-    std::pair<size_t, TypeSize> sizeSplit;
+    size_t sizeSplit;
     std::string output;
     std::string arcType;
     std::string compressionMethod;
@@ -50,7 +50,7 @@ public:
     const Settings& getConf() const;
 private:
     void parseArgs(int argc, char **argv);
-    std::pair<size_t, Settings::TypeSize> parseSizeSplit(const std::string& sizeSplite);
+    size_t parseSizeSplit(const std::string& sizeSplite);
     void validate();
     void validateSplitSize(const std::string& size);
     void validateArchiveType(const std::string& type);
